@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Manager Feedback Check Points | نقاط تقييم المدير</title>
+<style>
+:root{
+  --green:#3B6D11;--green-bg:#EAF3DE;--green-border:#C0DD97;--green-mid:#639922;
+  --yellow:#854F0B;--yellow-bg:#FAEEDA;--yellow-border:#FAC775;--yellow-mid:#BA7517;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-border:#F09595;--red-mid:#E24B4A;
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-border:#85B7EB;--blue-dark:#0C447C;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-border:#AFA9EC;--purple-dark:#3D3498;
+  --gray-bg:#F8F7F5;--card-bg:#FFFFFF;--border:#E2DDD6;
+  --text:#1A1917;--text-muted:#6B6863;--text-hint:#A09D99;
+  --radius:10px;--radius-sm:6px;--radius-pill:20px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08);--shadow-md:0 4px 16px rgba(0,0,0,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;background:var(--gray-bg);color:var(--text);min-height:100vh}
+
+/* ─── TOP BAR ─── */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(248,247,245,0.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:10px 24px;gap:12px}
+.brand{font-size:13px;font-weight:700;color:var(--text-muted);white-space:nowrap}
+.bar-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.lang-sw{display:flex;background:var(--border);border-radius:var(--radius-pill);padding:2px;gap:2px}
+.lang-sw button{padding:5px 13px;border:none;background:none;border-radius:var(--radius-pill);font-size:12px;font-weight:500;cursor:pointer;color:var(--text-muted);transition:all .15s}
+.lang-sw button.on{background:var(--card-bg);color:var(--text);box-shadow:var(--shadow)}
+.dash-btn{padding:6px 14px;border:1px solid var(--purple-border);border-radius:var(--radius-pill);background:var(--purple-bg);color:var(--purple);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.dash-btn:hover{background:var(--purple-border);color:var(--purple-dark)}
+
+/* ─── SCREENS ─── */
+.screen{display:none}.screen.on{display:block}
+
+/* ─── OVERLAY ─── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:900;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-size:14px;color:var(--text-muted)}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── MODAL ─── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(26,25,23,.5);backdrop-filter:blur(5px);z-index:500;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:40px 32px;width:100%;max-width:380px;text-align:center;box-shadow:var(--shadow-md)}
+.modal-icon{font-size:44px;margin-bottom:14px}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:6px}
+.modal p{font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.6}
+.modal-inp{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;background:var(--gray-bg);color:var(--text);outline:none;text-align:center;letter-spacing:.08em;margin-bottom:8px;transition:border-color .15s}
+.modal-inp:focus{border-color:var(--blue-border);background:#fff}
+.modal-inp.err{border-color:var(--red-mid);background:var(--red-bg)}
+.modal-errtxt{font-size:12px;color:var(--red);min-height:18px;margin-bottom:12px}
+.modal-btns{display:flex;gap:8px}
+.modal-btns button{flex:1;padding:12px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer}
+.btn-confirm{background:var(--blue);color:#fff;border:none}.btn-confirm:hover{background:var(--blue-dark)}
+.btn-cancel{background:none;border:1px solid var(--border);color:var(--text-muted)}.btn-cancel:hover{background:var(--gray-bg)}
+
+/* ════════════════ LANDING ════════════════ */
+#landing{padding-top:64px}
+.hero{max-width:660px;margin:0 auto;padding:52px 24px 0;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-pill);padding:5px 14px;margin-bottom:20px}
+.hero h1{font-size:clamp(22px,4.5vw,34px);font-weight:800;line-height:1.2;margin-bottom:14px}
+.hero .sub{font-size:16px;line-height:1.75;color:var(--text-muted);margin-bottom:28px;max-width:520px;margin-left:auto;margin-right:auto}
+.badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:36px}
+.bdg{font-size:12px;padding:5px 12px;border-radius:var(--radius-pill);border:1px solid var(--border);color:var(--text-muted);background:var(--card-bg)}
+.cta{display:inline-flex;align-items:center;gap:10px;padding:15px 40px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s}
+.cta:hover{background:var(--blue-dark);transform:translateY(-1px)}
+.cta-sub{font-size:12px;color:var(--text-hint);margin-top:10px}
+
+/* BACK TO GUIDE BANNER */
+.guide-banner{display:flex;align-items:center;justify-content:center;gap:10px;margin:18px auto 0;max-width:680px;padding:0 24px}
+.guide-banner-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border:1px solid var(--blue-border);border-radius:var(--radius-pill);background:var(--blue-bg);color:var(--blue);font-size:13px;font-weight:600;cursor:pointer}
+.guide-banner-btn:hover{background:var(--blue-border)}
+
+/* FRAMEWORK CARDS */
+.section{max-width:700px;margin:52px auto 0;padding:0 24px}
+.sec-lbl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-hint);margin-bottom:18px;text-align:center}
+.intro-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:16px}
+.intro-card h3{font-size:15px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.intro-card p{font-size:13px;color:var(--text-muted);line-height:1.65}
+.factors-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.factors-grid{grid-template-columns:1fr}}
+.factor-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
+.factor-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.f1::before{background:var(--blue)}.f2::before{background:var(--green-mid)}.f3::before{background:var(--yellow-mid)}.f4::before{background:var(--purple)}
+.factor-num{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-hint);margin-bottom:6px}
+.factor-name{font-size:15px;font-weight:700;margin-bottom:6px}
+.factor-q{font-size:12px;color:var(--text-muted);line-height:1.6;font-style:italic}
+
+/* COLOR GUIDE TABLE */
+.guide-table{width:100%;border-collapse:collapse;font-size:13px}
+.guide-table th{padding:10px 14px;text-align:right;font-weight:700;font-size:11px;color:var(--text-hint);letter-spacing:.05em;background:#FDFCFB;border-bottom:1px solid var(--border)}
+[dir=ltr] .guide-table th{text-align:left}
+.guide-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+.guide-table tr:last-child td{border-bottom:none}
+.kw-pill{display:inline-block;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:600;margin-top:4px}
+.kw-g{background:var(--green-bg);color:var(--green)}.kw-y{background:var(--yellow-bg);color:var(--yellow)}.kw-r{background:var(--red-bg);color:var(--red)}
+
+/* WHAT HAPPENS NEXT */
+.next-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.next-row{display:flex;gap:14px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--border)}
+.next-row:last-child{border-bottom:none}
+.nicon{font-size:22px;flex-shrink:0;width:32px;text-align:center;margin-top:1px}
+.ntext strong{display:block;font-size:13px;font-weight:700;margin-bottom:2px}
+.ntext span{font-size:12px;color:var(--text-muted);line-height:1.55}
+.cta-wrap{text-align:center;margin-top:28px;padding-bottom:60px}
+
+/* ════════════════ FORM ════════════════ */
+#form-pg{padding-top:64px}
+.form-wrap{max-width:760px;margin:0 auto;padding:32px 20px 90px}
+.form-head{text-align:center;margin-bottom:24px}
+.form-head h2{font-size:22px;font-weight:800;margin-bottom:6px}
+.form-head p{font-size:14px;color:var(--text-muted)}
+
+/* BACK TO GUIDE in form */
+.back-guide-row{display:flex;justify-content:center;margin-bottom:20px}
+.back-guide-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border:1px solid var(--blue-border);border-radius:var(--radius-pill);background:var(--blue-bg);color:var(--blue);font-size:13px;font-weight:600;cursor:pointer}
+.back-guide-btn:hover{background:var(--blue-border)}
+
+/* META ROW */
+.meta-row{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:480px){.meta-row{grid-template-columns:1fr}}
+.fld label{font-size:12px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:5px;letter-spacing:.03em}
+.fld input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--gray-bg);color:var(--text);outline:none;transition:border-color .15s}
+.fld input:focus{border-color:var(--blue-border);background:#fff}
+
+/* SECTION CARDS */
+.sec-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden}
+.sec-hd{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--gray-bg)}
+.sec-circle{width:26px;height:26px;border-radius:50%;background:var(--blue-bg);color:var(--blue);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-ttl{font-size:15px;font-weight:700}
+.sec-sub2{font-size:12px;color:var(--text-muted);margin-top:1px}
+.sec-body{padding:18px}
+
+/* EMPLOYEE CARDS */
+.emp-card{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:14px;overflow:hidden}
+.emp-hd{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--gray-bg);border-bottom:1px solid var(--border)}
+.emp-av{width:34px;height:34px;border-radius:50%;background:var(--blue-bg);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.emp-ni{flex:1;border:none;background:transparent;font-size:14px;font-weight:700;color:var(--text);outline:none}
+.emp-ni::placeholder{color:var(--text-hint);font-weight:400}
+.emp-del{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:var(--radius-sm);color:var(--text-hint);font-size:18px;line-height:1}
+.emp-del:hover{background:var(--red-bg);color:var(--red)}
+
+/* FACTOR TABLE */
+.ftbl{width:100%;border-collapse:collapse}
+.ftbl th{font-size:11px;font-weight:700;color:var(--text-hint);padding:8px 12px;text-align:right;border-bottom:1px solid var(--border);background:#FDFCFB;letter-spacing:.03em}
+[dir=ltr] .ftbl th{text-align:left}
+.ftbl td{padding:8px 12px;border-bottom:1px solid #F0EDE8;vertical-align:middle;font-size:13px}
+.ftbl tr:last-child td{border-bottom:none}
+.factor-label{font-weight:600;color:var(--text)}
+.factor-hint{font-size:11px;color:var(--text-hint);font-style:italic;margin-top:2px}
+
+/* TRAFFIC LIGHTS */
+.tl-grp{display:flex;gap:4px}
+.tl{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;font-size:15px;background:none;transition:transform .1s,background .12s;display:flex;align-items:center;justify-content:center}
+.tl:hover{transform:scale(1.12)}
+.tl.sg{background:var(--green-bg);border-color:var(--green-border)}
+.tl.sy{background:var(--yellow-bg);border-color:var(--yellow-border)}
+.tl.sr{background:var(--red-bg);border-color:var(--red-border)}
+
+/* KEYWORD + COMMENT + ONE THING */
+.kw-cell input{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 9px;font-size:12px;background:var(--gray-bg);color:var(--text);outline:none}
+.kw-cell input:focus{border-color:var(--blue-border);background:#fff}
+
+/* COMMENT CELL */
+.cmt-cell textarea{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 9px;font-size:12px;background:var(--gray-bg);color:var(--text);outline:none;resize:vertical;min-height:38px;font-family:inherit;line-height:1.4}
+.cmt-cell textarea:focus{border-color:var(--blue-border);background:#fff}
+
+.one-thing-wrap{margin-top:10px;padding:10px 12px;background:var(--gray-bg);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.one-thing-lbl{font-size:11px;font-weight:700;color:var(--text-hint);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
+.one-thing-inp{width:100%;border:none;background:transparent;font-size:13px;color:var(--text);outline:none}
+.one-thing-inp::placeholder{color:var(--text-hint)}
+
+/* PRIORITY SKILL GAP */
+.priority-wrap{margin-top:10px;padding:12px 14px;background:#FFF8F0;border-radius:var(--radius-sm);border:1px solid var(--yellow-border)}
+.priority-lbl{font-size:11px;font-weight:700;color:var(--yellow);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.priority-inp{width:100%;border:none;background:transparent;font-size:13px;color:var(--text);outline:none}
+.priority-inp::placeholder{color:var(--text-hint)}
+
+.add-emp{width:100%;padding:10px;margin-top:6px;border:1.5px dashed var(--border);border-radius:var(--radius-sm);background:none;cursor:pointer;font-size:13px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:6px}
+.add-emp:hover{border-color:var(--blue-border);color:var(--blue);background:var(--blue-bg)}
+.notes-ta{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--gray-bg);color:var(--text);resize:vertical;min-height:80px;outline:none;font-family:inherit}
+.notes-ta:focus{border-color:var(--blue-border);background:#fff}
+.submit-area{text-align:center;padding-top:8px}
+.submit-btn{padding:14px 52px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;transition:background .15s}
+.submit-btn:hover{background:var(--blue-dark)}
+
+/* ════════════════ SUCCESS ════════════════ */
+#suc-pg{padding-top:64px}
+.suc-wrap{max-width:480px;margin:80px auto;padding:44px 28px;text-align:center;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-md)}
+.suc-icon{font-size:56px;margin-bottom:16px}
+.suc-wrap h2{font-size:22px;font-weight:800;margin-bottom:8px}
+.suc-wrap p{font-size:14px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
+.reset-btn{padding:10px 28px;border:1px solid var(--border);border-radius:var(--radius);background:none;cursor:pointer;font-size:14px;color:var(--text-muted)}
+.reset-btn:hover{background:var(--gray-bg)}
+
+/* ════════════════ DASHBOARD ════════════════ */
+#dash-pg{padding-top:64px}
+.dash-wrap{max-width:980px;margin:0 auto;padding:28px 20px 90px}
+.dash-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.dash-hd h2{font-size:22px;font-weight:800}
+.dash-hd-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.act-btn{padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);font-size:13px;font-weight:500;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.act-btn:hover{background:var(--gray-bg)}
+.act-btn.danger{border-color:var(--red-border);color:var(--red)}.act-btn.danger:hover{background:var(--red-bg)}
+.back-b{padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;font-size:13px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;gap:5px}
+.back-b:hover{background:var(--gray-bg)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+.stat{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;text-align:center}
+.stat-n{font-size:30px;font-weight:800;margin-bottom:2px}
+.stat-l{font-size:12px;color:var(--text-muted)}
+.st-blue .stat-n{color:var(--blue)}.st-g .stat-n{color:var(--green)}.st-y .stat-n{color:var(--yellow)}.st-r .stat-n{color:var(--red)}
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.fchip{padding:6px 14px;border-radius:var(--radius-pill);border:1px solid var(--border);background:var(--card-bg);font-size:12px;font-weight:600;cursor:pointer;color:var(--text-muted)}
+.fchip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.sub-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
+.sub-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--gray-bg);border-bottom:1px solid var(--border);cursor:pointer;gap:10px}
+.sub-hd:hover{background:#F0EDE8}
+.sub-dept{font-size:15px;font-weight:800}
+.sub-meta{font-size:12px;color:var(--text-muted);margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700}
+.pg{background:var(--green-bg);color:var(--green)}.py{background:var(--yellow-bg);color:var(--yellow)}.pr{background:var(--red-bg);color:var(--red)}.pb{background:var(--blue-bg);color:var(--blue)}
+.sub-tog{font-size:20px;color:var(--text-hint);transition:transform .2s;line-height:1}
+.sub-tog.open{transform:rotate(90deg)}
+.sub-body{display:none;padding:16px 18px}.sub-body.open{display:block}
+.esec{margin-bottom:18px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.esec-hd{display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--gray-bg);border-bottom:1px solid var(--border);font-size:13px;font-weight:700;flex-wrap:wrap}
+.esec-av{width:26px;height:26px;border-radius:50%;background:var(--blue-bg);color:var(--blue);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.priority-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:600;background:#FFF8F0;color:var(--yellow);border:1px solid var(--yellow-border)}
+.mini-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.mini-tbl th{text-align:right;padding:6px 11px;color:var(--text-hint);font-weight:700;border-bottom:1px solid var(--border);background:#FDFCFB}
+[dir=ltr] .mini-tbl th{text-align:left}
+.mini-tbl td{padding:6px 11px;border-bottom:1px solid #F5F2EE;vertical-align:top}
+.mini-tbl tr:last-child td{border-bottom:none}
+.sdot{width:10px;height:10px;border-radius:50%;display:inline-block;vertical-align:middle}
+.cmt-dash{font-size:11px;color:var(--text-muted);font-style:italic}
+.ot-row{margin-top:8px;padding:8px 12px;background:var(--gray-bg);border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--border)}
+.ot-row strong{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.sub-notes-box{background:var(--gray-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--text-muted);margin-top:12px}
+.empty-dash{text-align:center;padding:70px 20px;color:var(--text-muted)}
+.empty-dash .ei{font-size:52px;margin-bottom:14px}
+.del-sub{background:none;border:none;cursor:pointer;padding:5px 8px;color:var(--text-hint);border-radius:var(--radius-sm);font-size:18px;line-height:1}
+.del-sub:hover{background:var(--red-bg);color:var(--red)}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="ov" style="display:flex;display:none">
+  <div class="spinner"></div><span id="ov-txt">جاري الإرسال...</span>
+</div>
+
+<div class="modal-bg" id="pw-modal">
+  <div class="modal">
+    <div class="modal-icon">🔒</div>
+    <h2 id="m-title">دخول لوحة التطوير</h2>
+    <p id="m-desc">هذه اللوحة خاصة بمسؤولة التطوير فقط. أدخلي كلمة المرور للمتابعة.</p>
+    <input class="modal-inp" type="password" id="pw-inp" placeholder="••••••••" onkeydown="if(event.key==='Enter')chkPw()"/>
+    <div class="modal-errtxt" id="pw-err"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closePw()" id="m-cancel">إلغاء</button>
+      <button class="btn-confirm" onclick="chkPw()" id="m-confirm">دخول اللوحة</button>
+    </div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="brand" id="brand-t">Manager Feedback Check Points</div>
+  <div class="bar-right">
+    <button class="dash-btn" onclick="openPw()" id="dash-btn-t">📊 لوحة مسؤولة التطوير</button>
+    <div class="lang-sw">
+      <button id="btn-ar" class="on" onclick="setL('ar')">العربية</button>
+      <button id="btn-en" onclick="setL('en')">English</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ LANDING ════════ -->
+<div id="landing" class="screen on">
+  <div class="hero">
+    <div class="eyebrow" id="ey-t">📋 للمديرين فقط · Managers Only</div>
+    <h1 id="hero-h">Manager Feedback<br>Check Points</h1>
+    <p class="sub" id="hero-p">بدلًا من "كيف مهاراته؟" — أجب على الأسئلة الذكية التي تكشف كيف يتعامل كل موظف مع المواقف الحقيقية. يستغرق أقل من 10 دقائق.</p>
+    <div class="badges">
+      <span class="bdg" id="b1">⏱ أقل من 10 دقائق</span>
+      <span class="bdg" id="b2">🔒 يراها قسم التطوير فقط</span>
+      <span class="bdg" id="b3">🧠 إطار Fresh Lens</span>
+    </div>
+
+  </div>
+
+  <!-- THE 4 FACTORS -->
+  <div class="section" style="margin-top:56px">
+    <div class="sec-lbl" id="f-lbl">الأسئلة الذكية التي ستجيب عليها</div>
+    <div class="factors-grid">
+      <div class="factor-card f1">
+        <div class="factor-num" id="fn1">العامل 1</div>
+        <div class="factor-name" id="fna1">🧬 Information Metabolism</div>
+        <div class="factor-q" id="fq1">"ما ردة فعله في الـ 3 أسابيع الأولى من تبني أداة أو عملية جديدة؟"</div>
+      </div>
+      <div class="factor-card f2">
+        <div class="factor-num" id="fn2">العامل 2</div>
+        <div class="factor-name" id="fna2">⚙️ Intellectual Traction</div>
+        <div class="factor-q" id="fq2">"عندما يعلق — ما شكل السؤال الذي يطرحه عليك؟"</div>
+      </div>
+      <div class="factor-card f3">
+        <div class="factor-num" id="fn3">العامل 3</div>
+        <div class="factor-name" id="fna3">📋 Process Gravitas</div>
+        <div class="factor-q" id="fq3">"هل هو مورد لصحة النظام أم عبء عليه؟ (توثيق، تقارير، متابعة)"</div>
+      </div>
+      <div class="factor-card f4">
+        <div class="factor-num" id="fn4">العامل 4</div>
+        <div class="factor-name" id="fna4">📡 Signal Amplification</div>
+        <div class="factor-q" id="fq4">"هل وجوده يرفع قدرة الفريق من حوله؟ كيف؟"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLOR GUIDE -->
+  <div class="section" style="margin-top:36px">
+    <div class="sec-lbl" id="cg-lbl">دليل الألوان والكلمات المفتاحية لكل عامل</div>
+    <div class="sec-card">
+      <div class="sec-body" style="padding:0;overflow-x:auto">
+        <table class="guide-table">
+          <thead><tr>
+            <th style="width:22%" id="gt-factor">العامل</th>
+            <th style="width:26%" id="gt-green">🟢 أخضر</th>
+            <th style="width:26%" id="gt-yellow">🟡 أصفر</th>
+            <th style="width:26%" id="gt-red">🔴 أحمر</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><strong>🧬 Metabolism</strong></td>
+              <td><span id="gd-1g">تبنّاه بإيجابية، بحث بنفسه، شارك الفريق</span><br><span class="kw-pill kw-g">Early Adopter</span></td>
+              <td><span id="gd-1y">طبّق ما عُلِّم فقط، لا استكشاف ذاتي</span><br><span class="kw-pill kw-y">Structured Follower</span></td>
+              <td><span id="gd-1r">رفض التغيير، استمر في الطريقة القديمة</span><br><span class="kw-pill kw-r">Change Resistant</span></td></tr>
+            <tr><td><strong>⚙️ Traction</strong></td>
+              <td><span id="gd-2g">يعرض ما جرّبه ويضيّق الخيارات قبل الطلب</span><br><span class="kw-pill kw-g">Problem Solver</span></td>
+              <td><span id="gd-2y">يطلب المساعدة دون محاولة مسبقة كافية</span><br><span class="kw-pill kw-y">Clarifier</span></td>
+              <td><span id="gd-2r">يصمت حتى يفوت الموعد أو يُكتشف الأمر صدفة</span><br><span class="kw-pill kw-r">Silent Staller</span></td></tr>
+            <tr><td><strong>📋 Gravitas</strong></td>
+              <td><span id="gd-3g">يوثّق دون أن يُطلب منه، يُحسّن النظام للآخرين</span><br><span class="kw-pill kw-g">System Preserver</span></td>
+              <td><span id="gd-3y">يفعل الحد الأدنى، يحتاج تذكيرًا</span><br><span class="kw-pill kw-y">Minimum Viable</span></td>
+              <td><span id="gd-3r">يتجاهل التوثيق تمامًا، يثقّل النظام</span><br><span class="kw-pill kw-r">Organizational Debt</span></td></tr>
+            <tr><td><strong>📡 Amplification</strong></td>
+              <td><span id="gd-4g">يشارك، يعلّم، يرفع الفريق من حوله بشكل عفوي</span><br><span class="kw-pill kw-g">Booster</span></td>
+              <td><span id="gd-4y">يؤدي عمله جيدًا لكنه محايد تجاه الفريق</span><br><span class="kw-pill kw-y">Solid Performer</span></td>
+              <td><span id="gd-4r">يكتنز المعرفة، يثبّط المبادرات، يستنزف الطاقة</span><br><span class="kw-pill kw-r">Energy Sucker</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW TO FILL -->
+  <div class="section" style="margin-top:36px">
+    <div class="sec-lbl" id="hf-lbl">كيف تملأ الفورم</div>
+    <div class="intro-card">
+      <h3>🎯 <span id="hf-h">تذكّر — لا تسأل "كيف مهاراته؟"</span></h3>
+      <p id="hf-p">فكّر في مواقف حقيقية شهدتها معه. لكل سؤال: اختر اللون الذي يصف سلوكه الأكثر شيوعًا، ثم اكتب الكلمة المفتاحية أو اكتب كلمتك الخاصة، وأضف تعليقًا إن أردت. أخيرًا، اكتب "الشيء الواحد" والفجوة الأهم التي تريد التركيز عليها.</p>
+    </div>
+  </div>
+
+  <!-- WHAT HAPPENS NEXT -->
+  <div class="section" style="margin-top:36px">
+    <div class="sec-lbl" id="whn-lbl">ماذا يحدث بعد الإرسال؟</div>
+    <div class="next-card">
+      <div class="next-row"><div class="nicon">✅</div><div class="ntext"><strong id="n1h">كل الإجابات أخضر — لا حاجة لاجتماع</strong><span id="n1d">سأرى إجاباتك وآخذ علمًا بها. لا إجراء مطلوب.</span></div></div>
+      <div class="next-row"><div class="nicon">📞</div><div class="ntext"><strong id="n2h">نتائج متفاوتة — مكالمة 15 دقيقة</strong><span id="n2d">إذا كانت بعض الإجابات أصفر، قد نحدد مكالمة سريعة.</span></div></div>
+      <div class="next-row"><div class="nicon">🗓</div><div class="ntext"><strong id="n3h">أي إجابة أحمر — اجتماع كامل</strong><span id="n3d">سنحدد جلسة مخصصة لفهم الموقف ووضع خطة للتطوير.</span></div></div>
+      <div class="next-row"><div class="nicon">🔒</div><div class="ntext"><strong id="n4h">إجاباتك سرية تمامًا</strong><span id="n4d">قسم التطوير فقط يستطيع رؤية ما أرسلته.</span></div></div>
+    </div>
+    <div class="cta-wrap">
+      <button class="cta" onclick="goForm()"><span id="cta2-t">ابدأ التقييم الآن</span> <span>←</span></button>
+      <div class="cta-sub" id="cta2-sub">يمكنك مراجعة إجاباتك قبل الإرسال</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ FORM PAGE ════════ -->
+<div id="form-pg" class="screen">
+  <div class="form-wrap">
+    <div class="form-head">
+      <h2 id="form-h">Manager Feedback Check Points</h2>
+      <p id="form-p">إجاباتك تذهب مباشرة إلى قسم التطوير — سرية تامة، لا يراها أحد غيرهم.</p>
+    </div>
+
+    <!-- BACK TO GUIDE BUTTON -->
+    <div class="back-guide-row">
+      <button class="back-guide-btn" onclick="showScreen('landing')" id="back-guide-btn">
+        📖 <span id="back-guide-t">رجوع لصفحة الشرح</span>
+      </button>
+    </div>
+
+    <div class="meta-row">
+      <div class="fld"><label id="l-dept">اسم القسم</label><input type="text" id="deptName" placeholder="مثال: المبيعات"/></div>
+      <div class="fld"><label id="l-mgr">اسم المدير</label><input type="text" id="mgrName" placeholder="اسمك الكامل"/></div>
+      <div class="fld"><label id="l-date">تاريخ التقييم</label><input type="date" id="evalDate"/></div>
+    </div>
+
+    <div class="sec-card">
+      <div class="sec-hd">
+        <div class="sec-circle">1</div>
+        <div><div class="sec-ttl" id="s1t">تقييم الموظفين</div><div class="sec-sub2" id="s1s">لكل موظف: قيّم كل سؤال بلون، أضف كلمة مفتاحية وتعليقًا اختياريًا، واكتب الشيء الواحد والفجوة الأهم</div></div>
+      </div>
+      <div class="sec-body">
+        <div id="empList"></div>
+        <button class="add-emp" onclick="addEmp()" id="add-emp-btn">+ <span id="add-emp-t">إضافة موظف</span></button>
+      </div>
+    </div>
+
+    <div class="sec-card">
+      <div class="sec-hd"><div class="sec-circle">2</div><div><div class="sec-ttl" id="s2t">مرجع الكلمات المفتاحية السريع</div></div></div>
+      <div class="sec-body" style="padding:0;overflow-x:auto">
+        <table class="guide-table" style="font-size:12px">
+          <thead><tr><th id="qr-f">العامل</th><th id="qr-g">🟢</th><th id="qr-y">🟡</th><th id="qr-r">🔴</th></tr></thead>
+          <tbody>
+            <tr><td><strong>🧬 Metabolism</strong></td><td><span class="kw-pill kw-g">Early Adopter</span></td><td><span class="kw-pill kw-y">Structured Follower</span></td><td><span class="kw-pill kw-r">Change Resistant</span></td></tr>
+            <tr><td><strong>⚙️ Traction</strong></td><td><span class="kw-pill kw-g">Problem Solver</span></td><td><span class="kw-pill kw-y">Clarifier</span></td><td><span class="kw-pill kw-r">Silent Staller</span></td></tr>
+            <tr><td><strong>📋 Gravitas</strong></td><td><span class="kw-pill kw-g">System Preserver</span></td><td><span class="kw-pill kw-y">Minimum Viable</span></td><td><span class="kw-pill kw-r">Organizational Debt</span></td></tr>
+            <tr><td><strong>📡 Amplification</strong></td><td><span class="kw-pill kw-g">Booster</span></td><td><span class="kw-pill kw-y">Solid Performer</span></td><td><span class="kw-pill kw-r">Energy Sucker</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sec-card">
+      <div class="sec-hd"><div class="sec-circle">3</div><div><div class="sec-ttl" id="s3t">ملاحظات عامة (اختياري)</div><div class="sec-sub2" id="s3s">أي ملاحظات لا تتعلق بموظف محدد</div></div></div>
+      <div class="sec-body"><textarea class="notes-ta" id="genNotes"></textarea></div>
+    </div>
+
+    <div class="submit-area"><button class="submit-btn" onclick="submitForm()" id="sub-btn">إرسال التقييم</button></div>
+  </div>
+</div>
+
+<!-- ════════ SUCCESS ════════ -->
+<div id="suc-pg" class="screen">
+  <div style="max-width:480px;margin:0 auto;padding:0 20px">
+    <div class="suc-wrap">
+      <div class="suc-icon">✅</div>
+      <h2 id="suc-h">تم إرسال التقييم بنجاح!</h2>
+      <p id="suc-p">تم حفظ تقييمك. سيراجعه قسم التطوير ويتواصل معك فقط عند الحاجة.</p>
+      <button class="reset-btn" onclick="resetAll()" id="suc-reset">إرسال تقييم آخر</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ DASHBOARD ════════ -->
+<div id="dash-pg" class="screen">
+  <div class="dash-wrap">
+    <div class="dash-hd">
+      <div>
+        <h2 id="dh-title">📊 لوحة مسؤولة التطوير</h2>
+        <div class="dash-hd-sub" id="dh-sub">حبيبة حجازي — Manager Feedback Check Points</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="act-btn" onclick="renderDash()">🔄 <span id="d-refresh">تحديث</span></button>
+        <button class="act-btn" onclick="exportCSV()">⬇ <span id="d-export">تصدير CSV</span></button>
+        <button class="act-btn danger" onclick="clearAll()">🗑 <span id="d-clear">حذف الكل</span></button>
+        <button class="back-b" onclick="showScreen('landing')">← <span id="d-back">رجوع</span></button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat st-blue"><div class="stat-n" id="st-tot">0</div><div class="stat-l" id="st-tot-l">إجمالي الاستجابات</div></div>
+      <div class="stat st-g"><div class="stat-n" id="st-g">0</div><div class="stat-l" id="st-g-l">✅ كل الإجابات أخضر</div></div>
+      <div class="stat st-y"><div class="stat-n" id="st-y">0</div><div class="stat-l" id="st-y-l">🟡 يحتاج متابعة</div></div>
+      <div class="stat st-r"><div class="stat-n" id="st-r">0</div><div class="stat-l" id="st-r-l">🔴 تدخل عاجل</div></div>
+    </div>
+    <div class="filter-bar">
+      <button class="fchip on" onclick="setF('all',this)" id="f-all">الكل</button>
+      <button class="fchip" onclick="setF('green',this)" id="f-g">✅ أخضر</button>
+      <button class="fchip" onclick="setF('yellow',this)" id="f-y">🟡 أصفر</button>
+      <button class="fchip" onclick="setF('red',this)" id="f-r">🔴 أحمر</button>
+    </div>
+    <div id="subList"></div>
+  </div>
+</div>
+
+<script>
+const PW="__MANAGER_PASSWORD__";
+const SHEETS_URL="https://script.google.com/macros/s/AKfycbxXYsm7eOCziXGdvC0W013lR-ThwhdvlyeVoQ70raSBFOWIHYQSz-ErQIDpzbnmGB85sw/exec";
+
+// ── NEW COLUMNS FROM EXCEL ──
+const EXTRA_COLS={
+  ar:["الالتزام والتفاني","التواصل","المهارات التقنية","حل المشكلات","الملكية والمسؤولية"],
+  en:["Adherence & Dedication","Communication","Technical Skills","Problem Solving","Ownership & Responsibility"]
+};
+
+const FACTORS={
+  ar:[
+    {name:"🧬 Information Metabolism",q:"فكّر في آخر أداة أو عملية جديدة. كيف تصرّف في الـ 3 أسابيع الأولى؟",kw:{g:"Early Adopter",y:"Structured Follower",r:"Change Resistant"}},
+    {name:"⚙️ Intellectual Traction",q:"عندما يعلق في مشكلة — ما شكل السؤال الذي يطرحه عليك؟",kw:{g:"Problem Solver",y:"Clarifier",r:"Silent Staller"}},
+    {name:"📋 Process Gravitas",q:"هل هو مورد لصحة النظام أم عبء عليه؟ (توثيق، تقارير، متابعة المهام)",kw:{g:"System Preserver",y:"Minimum Viable",r:"Organizational Debt"}},
+    {name:"📡 Signal Amplification",q:"هل وجوده يرفع قدرة الفريق من حوله؟ كيف بالتحديد؟",kw:{g:"Booster",y:"Solid Performer",r:"Energy Sucker"}}
+  ],
+  en:[
+    {name:"🧬 Information Metabolism",q:"Think of the last new tool/process. How did they behave in the first 3 weeks?",kw:{g:"Early Adopter",y:"Structured Follower",r:"Change Resistant"}},
+    {name:"⚙️ Intellectual Traction",q:"When they hit a roadblock — what is the format of the question they bring to you?",kw:{g:"Problem Solver",y:"Clarifier",r:"Silent Staller"}},
+    {name:"📋 Process Gravitas",q:"Are they a net contributor to system health or a net drain? (docs, CRM, task comments)",kw:{g:"System Preserver",y:"Minimum Viable",r:"Organizational Debt"}},
+    {name:"📡 Signal Amplification",q:"Does their presence increase the capability of the people around them? How?",kw:{g:"Booster",y:"Solid Performer",r:"Energy Sucker"}}
+  ]
+};
+
+const TR={
+ar:{
+  brand:"Manager Feedback Check Points",eyebrow:"📋 للمديرين فقط · Managers Only",
+  heroP:"بدلًا من \"كيف مهاراته؟\" — أجب على الأسئلة الذكية التي تكشف كيف يتعامل كل موظف مع المواقف الحقيقية. يستغرق أقل من 10 دقائق.",
+  b1:"⏱ أقل من 10 دقائق",b2:"🔒 يراها قسم التطوير فقط",b3:"🧠 إطار Fresh Lens",
+  cta1:"ابدأ الآن",ctaSub:"يمكنك مراجعة إجاباتك قبل الإرسال",
+  fLbl:"الأسئلة الذكية التي ستجيب عليها",
+  fn:["العامل 1","العامل 2","العامل 3","العامل 4"],
+  fq:["\"ما ردة فعله في الـ 3 أسابيع الأولى من تبني أداة أو عملية جديدة؟\"",
+      "\"عندما يعلق — ما شكل السؤال الذي يطرحه عليك؟\"",
+      "\"هل هو مورد لصحة النظام أم عبء عليه؟ (توثيق، تقارير، متابعة)\"",
+      "\"هل وجوده يرفع قدرة الفريق من حوله؟ كيف؟\""],
+  cgLbl:"دليل الألوان والكلمات المفتاحية لكل عامل",
+  gtFactor:"العامل",gtGreen:"🟢 أخضر",gtYellow:"🟡 أصفر",gtRed:"🔴 أحمر",
+  hfLbl:"كيف تملأ الفورم",
+  hfH:"🎯 تذكّر — لا تسأل \"كيف مهاراته؟\"",
+  hfP:"فكّر في مواقف حقيقية شهدتها معه. لكل سؤال: اختر اللون، اكتب الكلمة المفتاحية، وأضف تعليقًا اختياريًا. أخيرًا اكتب الشيء الواحد والفجوة الأهم.",
+  whnLbl:"ماذا يحدث بعد الإرسال؟",
+  n1h:"كل الإجابات أخضر — لا حاجة لاجتماع",n1d:"سأرى إجاباتك وآخذ علمًا بها. لا إجراء مطلوب.",
+  n2h:"نتائج متفاوتة — مكالمة 15 دقيقة",n2d:"إذا كانت بعض الإجابات أصفر، قد نحدد مكالمة سريعة.",
+  n3h:"أي إجابة أحمر — اجتماع كامل",n3d:"سنحدد جلسة مخصصة لفهم الموقف ووضع خطة للتطوير.",
+  n4h:"إجاباتك سرية تمامًا",n4d:"قسم التطوير فقط يستطيع رؤية ما أرسلته.",
+  cta2:"ابدأ التقييم الآن",
+  dashBtn:"📊 لوحة مسؤولة التطوير",
+  mTitle:"دخول لوحة التطوير",mDesc:"هذه اللوحة خاصة بمسؤولة التطوير فقط. أدخلي كلمة المرور للمتابعة.",
+  mCancel:"إلغاء",mConfirm:"دخول اللوحة",mErr:"كلمة المرور غير صحيحة، حاولي مرة أخرى.",
+  formH:"Manager Feedback Check Points",formP:"إجاباتك تذهب مباشرة إلى قسم التطوير — سرية تامة.",
+  backGuide:"📖 رجوع لصفحة الشرح",
+  lDept:"اسم القسم",lMgr:"اسم المدير",lDate:"تاريخ التقييم",
+  phDept:"مثال: المبيعات",phMgr:"اسمك الكامل",
+  s1t:"تقييم الموظفين",s1s:"لكل موظف: قيّم كل سؤال بلون، أضف كلمة مفتاحية وتعليقًا اختياريًا، واكتب الشيء الواحد والفجوة الأهم",
+  s2t:"مرجع الكلمات المفتاحية السريع",
+  qrF:"العامل",qrG:"🟢",qrY:"🟡",qrR:"🔴",
+  s3t:"ملاحظات عامة (اختياري)",s3s:"أي ملاحظات لا تتعلق بموظف محدد",
+  notesPh:"اكتب ملاحظاتك هنا...",
+  addEmpBtn:"إضافة موظف",subBtn:"إرسال التقييم",
+  phEmp:"اسم الموظف",phKw:"الكلمة المفتاحية...",phCmt:"تعليق اختياري...",
+  otLbl:"الشيء الواحد — ابدأ أو أوقف:",otPh:"مثال: ابدأ: أحضر حلًا واحدًا قبل طلب المساعدة",
+  prLbl:"⭐ الفجوة ذات الأولوية (Priority Skill Gap):",prPh:"مثال: التواصل مع الفريق خلال المشروع",
+  thFactor:"العامل / المجال",thStatus:"التقييم",thKw:"الكلمة المفتاحية",thCmt:"تعليق",
+  sucH:"تم إرسال التقييم بنجاح!",sucP:"تم حفظ تقييمك. سيراجعه قسم التطوير ويتواصل معك فقط عند الحاجة.",sucReset:"إرسال تقييم آخر",
+  ovTxt:"جاري الإرسال...",
+  alertDept:"من فضلك أدخل اسم القسم واسم المدير.",alertEmp:"من فضلك أضف موظفًا واحدًا على الأقل.",
+  alertFields:"من فضلك أكمل كل الحقول للموظف",
+  dhTitle:"📊 لوحة مسؤولة التطوير",dhSub:"حبيبة حجازي — Manager Feedback Check Points",
+  dRefresh:"تحديث",dExport:"تصدير CSV",dClear:"حذف الكل",dBack:"رجوع",
+  stTot:"إجمالي الاستجابات",stG:"✅ كل الإجابات أخضر",stY:"🟡 يحتاج متابعة",stR:"🔴 تدخل عاجل",
+  fAll:"الكل",fG:"✅ أخضر",fY:"🟡 أصفر",fR:"🔴 أحمر",
+  emptyDash:"لا توجد استجابات بعد",emptyDashS:"عندما يرسل المديرون تقييماتهم، ستظهر هنا.",
+  dashLoading:"جاري تحميل البيانات...",
+  thFact:"العامل / المجال",thStat:"التقييم",thKwD:"الكلمة",thCmtD:"تعليق",
+  otLblD:"الشيء الواحد:",prLblD:"⭐ الفجوة الأهم:",
+  notesLbl:"ملاحظات المدير:",submitted:"أُرسل في",empCount:"موظف",
+  confirmClear:"هل أنت متأكد من حذف كل الاستجابات؟ لا يمكن التراجع.",
+  extraLbl:"المجالات الإضافية"
+},
+en:{
+  brand:"Manager Feedback Check Points",eyebrow:"📋 Managers Only · للمديرين فقط",
+  heroP:"Instead of \"how good are their skills?\" — answer the smart questions that reveal how each employee handles real situations. Takes under 10 minutes.",
+  b1:"⏱ Under 10 minutes",b2:"🔒 Seen by L&D only",b3:"🧠 Fresh Lens Framework",
+  cta1:"Start Now",ctaSub:"You can review your answers before submitting",
+  fLbl:"The Smart Questions You'll Answer",
+  fn:["Factor 1","Factor 2","Factor 3","Factor 4"],
+  fq:["\"How did they react in the first 3 weeks of adopting a new tool or process?\"",
+      "\"When they hit a roadblock — what is the format of the question they bring to you?\"",
+      "\"Are they a net contributor to system health or a net drain?\"",
+      "\"Does their presence increase the capability of the people around them?\""],
+  cgLbl:"Color Guide & Keywords for Each Factor",
+  gtFactor:"Factor",gtGreen:"🟢 Green",gtYellow:"🟡 Yellow",gtRed:"🔴 Red",
+  hfLbl:"How to Fill the Form",
+  hfH:"🎯 Remember — don't ask \"how good are their skills?\"",
+  hfP:"Think of real situations. For each question: choose a color, add a keyword, and an optional comment. Finally write the one thing and the priority skill gap.",
+  whnLbl:"What happens after you submit?",
+  n1h:"All answers green — no meeting needed",n1d:"I'll see your response and take note. No action required.",
+  n2h:"Mixed results — quick 15-min call",n2d:"If some answers are yellow, we may schedule a quick check-in.",
+  n3h:"Any answer red — full meeting",n3d:"We'll schedule a dedicated session to plan a development plan.",
+  n4h:"Your answers are completely confidential",n4d:"Only the L&D team can see what you submitted.",
+  cta2:"Start Assessment Now",
+  dashBtn:"📊 L&D Manager Dashboard",
+  mTitle:"L&D Manager Access",mDesc:"This dashboard is for the L&D manager only. Enter your password to continue.",
+  mCancel:"Cancel",mConfirm:"Enter Dashboard",mErr:"Incorrect password, please try again.",
+  formH:"Manager Feedback Check Points",formP:"Your answers go directly to the L&D team — completely confidential.",
+  backGuide:"📖 Back to Guide",
+  lDept:"Department Name",lMgr:"Manager Name",lDate:"Assessment Date",
+  phDept:"e.g. Sales",phMgr:"Your full name",
+  s1t:"Employee Assessment",s1s:"For each employee: rate each question with a color, add keyword & optional comment, write the one thing and priority gap",
+  s2t:"Quick Keyword Reference",
+  qrF:"Factor",qrG:"🟢",qrY:"🟡",qrR:"🔴",
+  s3t:"General Notes (optional)",s3s:"Any observations not tied to a specific employee",
+  notesPh:"Write your notes here...",
+  addEmpBtn:"Add Employee",subBtn:"Submit Assessment",
+  phEmp:"Employee name",phKw:"Keyword...",phCmt:"Optional comment...",
+  otLbl:"The One Thing — Start or Stop:",otPh:"e.g. Start: Bring at least one attempted solution before asking for help",
+  prLbl:"⭐ Priority Skill Gap:",prPh:"e.g. communication with team during project",
+  thFactor:"Factor / Area",thStatus:"Rating",thKw:"Keyword",thCmt:"Comment",
+  sucH:"Assessment submitted successfully!",sucP:"Your assessment has been saved. L&D will review it and reach out only if needed.",sucReset:"Submit another assessment",
+  ovTxt:"Sending...",
+  alertDept:"Please enter the department name and your name.",alertEmp:"Please add at least one employee.",
+  alertFields:"Please complete all fields for employee",
+  dhTitle:"📊 L&D Manager Dashboard",dhSub:"Habiba Hegazy — Manager Feedback Check Points",
+  dRefresh:"Refresh",dExport:"Export CSV",dClear:"Delete All",dBack:"Back",
+  stTot:"Total Responses",stG:"✅ All Answers Green",stY:"🟡 Needs Follow-up",stR:"🔴 Urgent Action",
+  fAll:"All",fG:"✅ Green",fY:"🟡 Yellow",fR:"🔴 Red",
+  emptyDash:"No responses yet",emptyDashS:"When managers submit their assessments, they will appear here.",
+  dashLoading:"Loading data...",
+  thFact:"Factor / Area",thStat:"Rating",thKwD:"Keyword",thCmtD:"Comment",
+  otLblD:"The One Thing:",prLblD:"⭐ Priority Gap:",
+  notesLbl:"Manager Notes:",submitted:"Submitted on",empCount:"employees",
+  confirmClear:"Are you sure you want to delete all responses? This cannot be undone.",
+  extraLbl:"Additional Areas"
+}};
+
+let lang='ar',employees=[],empCnt=0,submissions=[],dashFilter='all';
+function gi(id){return document.getElementById(id)}
+function si(id,v){const e=gi(id);if(e)e.innerHTML=v}
+function sp(id,v){const e=gi(id);if(e)e.placeholder=v}
+function ini(x){if(!x||!x.trim())return'';return x.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2)}
+
+function setL(l){
+  lang=l;document.documentElement.lang=l;document.documentElement.dir=l==='ar'?'rtl':'ltr';
+  gi('btn-ar').classList.toggle('on',l==='ar');gi('btn-en').classList.toggle('on',l==='en');
+  applyTR();renderEmps();
+  if(gi('dash-pg').classList.contains('on'))renderDash();
+}
+
+function applyTR(){
+  const t=TR[lang];
+  si('brand-t',t.brand);si('ey-t',t.eyebrow);si('hero-p',t.heroP);
+  si('b1',t.b1);si('b2',t.b2);si('b3',t.b3);
+  si('cta1-t',t.cta1);si('cta1-sub',t.ctaSub);si('cta2-t',t.cta2);si('cta2-sub',t.ctaSub);
+  si('f-lbl',t.fLbl);
+  for(let i=0;i<4;i++){si('fn'+(i+1),t.fn[i]);si('fq'+(i+1),t.fq[i]);}
+  const fn=FACTORS[lang];
+  si('fna1',fn[0].name);si('fna2',fn[1].name);si('fna3',fn[2].name);si('fna4',fn[3].name);
+  si('cg-lbl',t.cgLbl);si('gt-factor',t.gtFactor);si('gt-green',t.gtGreen);si('gt-yellow',t.gtYellow);si('gt-red',t.gtRed);
+  si('hf-lbl',t.hfLbl);si('hf-h',t.hfH);si('hf-p',t.hfP);
+  si('whn-lbl',t.whnLbl);
+  si('n1h',t.n1h);si('n1d',t.n1d);si('n2h',t.n2h);si('n2d',t.n2d);si('n3h',t.n3h);si('n3d',t.n3d);si('n4h',t.n4h);si('n4d',t.n4d);
+  si('dash-btn-t',t.dashBtn);si('m-title',t.mTitle);si('m-desc',t.mDesc);si('m-cancel',t.mCancel);si('m-confirm',t.mConfirm);
+  si('form-h',t.formH);si('form-p',t.formP);
+  si('back-guide-t',t.backGuide.replace('📖 ',''));gi('back-guide-btn').innerHTML='📖 '+t.backGuide.replace('📖 ','');
+  si('l-dept',t.lDept);si('l-mgr',t.lMgr);si('l-date',t.lDate);
+  sp('deptName',t.phDept);sp('mgrName',t.phMgr);sp('genNotes',t.notesPh);
+  si('s1t',t.s1t);si('s1s',t.s1s);si('s2t',t.s2t);
+  si('qr-f',t.qrF);si('qr-g',t.qrG);si('qr-y',t.qrY);si('qr-r',t.qrR);
+  si('s3t',t.s3t);si('s3s',t.s3s);
+  si('add-emp-t',t.addEmpBtn);si('sub-btn',t.subBtn);
+  si('suc-h',t.sucH);si('suc-p',t.sucP);si('suc-reset',t.sucReset);
+  si('ov-txt',t.ovTxt);
+  si('dh-title',t.dhTitle);si('dh-sub',t.dhSub);
+  si('d-refresh',t.dRefresh);si('d-export',t.dExport);si('d-clear',t.dClear);si('d-back',t.dBack);
+  si('st-tot-l',t.stTot);si('st-g-l',t.stG);si('st-y-l',t.stY);si('st-r-l',t.stR);
+  si('f-all',t.fAll);si('f-g',t.fG);si('f-y',t.fY);si('f-r',t.fR);
+}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));gi(id).classList.add('on');window.scrollTo(0,0)}
+function goForm(){showScreen('form-pg')}
+function openPw(){gi('pw-inp').value='';gi('pw-err').textContent='';gi('pw-inp').classList.remove('err');gi('pw-modal').classList.add('on');setTimeout(()=>gi('pw-inp').focus(),120)}
+function closePw(){gi('pw-modal').classList.remove('on')}
+function chkPw(){const v=gi('pw-inp').value;if(v===PW){closePw();renderDash();showScreen('dash-pg');}else{gi('pw-inp').classList.add('err');gi('pw-err').textContent=TR[lang].mErr;gi('pw-inp').value='';gi('pw-inp').focus();}}
+
+function addEmp(){
+  empCnt++;const id='e'+empCnt;
+  const fs={};FACTORS.ar.forEach((_,i)=>fs[i]={st:null,kw:'',cmt:''});
+  const ex={};EXTRA_COLS.ar.forEach((_,i)=>ex[i]={st:null,kw:'',cmt:''});
+  employees.push({id,name:'',fs,ex,ot:'',priority:''});
+  renderEmps();
+}
+function delEmp(id){employees=employees.filter(e=>e.id!==id);renderEmps()}
+function setSt(eid,fi,st,isEx){
+  const e=employees.find(x=>x.id===eid);if(!e)return;
+  const obj=isEx?e.ex[fi]:e.fs[fi];
+  obj.st=obj.st===st?null:st;renderEmps();
+}
+function updName(eid,v){const e=employees.find(x=>x.id===eid);if(e){e.name=v;const av=gi('av_'+eid);if(av)av.textContent=ini(v)||(employees.indexOf(e)+1)}}
+function updKw(eid,fi,v,isEx){const e=employees.find(x=>x.id===eid);if(e)(isEx?e.ex[fi]:e.fs[fi]).kw=v}
+function updCmt(eid,fi,v,isEx){const e=employees.find(x=>x.id===eid);if(e)(isEx?e.ex[fi]:e.fs[fi]).cmt=v}
+function updOT(eid,v){const e=employees.find(x=>x.id===eid);if(e)e.ot=v}
+function updPr(eid,v){const e=employees.find(x=>x.id===eid);if(e)e.priority=v}
+
+function renderEmps(){
+  const t=TR[lang];const factors=FACTORS[lang];const extras=EXTRA_COLS[lang];
+  const c=gi('empList');c.innerHTML='';
+  employees.forEach((emp,ei)=>{
+    // Fresh Lens rows
+    const fRows=factors.map((f,fi)=>{
+      const st=emp.fs[fi].st;const kw=emp.fs[fi].kw;const cmt=emp.fs[fi].cmt;
+      return `<tr>
+        <td><div class="factor-label">${f.name}</div><div class="factor-hint">${f.q}</div></td>
+        <td><div class="tl-grp">
+          <button class="tl ${st==='g'?'sg':''}" onclick="setSt('${emp.id}',${fi},'g',false)">🟢</button>
+          <button class="tl ${st==='y'?'sy':''}" onclick="setSt('${emp.id}',${fi},'y',false)">🟡</button>
+          <button class="tl ${st==='r'?'sr':''}" onclick="setSt('${emp.id}',${fi},'r',false)">🔴</button>
+        </div></td>
+        <td class="kw-cell"><input value="${kw}" placeholder="${t.phKw}" oninput="updKw('${emp.id}',${fi},this.value,false)"/></td>
+        <td class="cmt-cell"><textarea placeholder="${t.phCmt}" oninput="updCmt('${emp.id}',${fi},this.value,false)">${cmt}</textarea></td>
+      </tr>`;
+    }).join('');
+    // Extra columns rows
+    const exRows=extras.map((ex,xi)=>{
+      const st=emp.ex[xi].st;const kw=emp.ex[xi].kw;const cmt=emp.ex[xi].cmt;
+      return `<tr style="background:#FDFCFB">
+        <td><div class="factor-label">${ex}</div></td>
+        <td><div class="tl-grp">
+          <button class="tl ${st==='g'?'sg':''}" onclick="setSt('${emp.id}',${xi},'g',true)">🟢</button>
+          <button class="tl ${st==='y'?'sy':''}" onclick="setSt('${emp.id}',${xi},'y',true)">🟡</button>
+          <button class="tl ${st==='r'?'sr':''}" onclick="setSt('${emp.id}',${xi},'r',true)">🔴</button>
+        </div></td>
+        <td class="kw-cell"><input value="${kw}" placeholder="${t.phKw}" oninput="updKw('${emp.id}',${xi},this.value,true)"/></td>
+        <td class="cmt-cell"><textarea placeholder="${t.phCmt}" oninput="updCmt('${emp.id}',${xi},this.value,true)">${cmt}</textarea></td>
+      </tr>`;
+    }).join('');
+
+    const div=document.createElement('div');div.className='emp-card';
+    div.innerHTML=`
+      <div class="emp-hd">
+        <div class="emp-av" id="av_${emp.id}">${ini(emp.name)||(ei+1)}</div>
+        <input class="emp-ni" value="${emp.name}" placeholder="${t.phEmp}" oninput="updName('${emp.id}',this.value)"/>
+        <button class="emp-del" onclick="delEmp('${emp.id}')">🗑</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="ftbl">
+          <thead>
+            <tr><th style="width:36%">${t.thFactor}</th><th style="width:16%">${t.thStatus}</th><th style="width:24%">${t.thKw}</th><th style="width:24%">${t.thCmt}</th></tr>
+          </thead>
+          <tbody>
+            ${fRows}
+            <tr><td colspan="4" style="padding:6px 12px;background:var(--blue-bg);font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.05em;text-transform:uppercase">${t.extraLbl}</td></tr>
+            ${exRows}
+          </tbody>
+        </table>
+      </div>
+      <div class="one-thing-wrap">
+        <div class="one-thing-lbl">${t.otLbl}</div>
+        <input class="one-thing-inp" value="${emp.ot}" placeholder="${t.otPh}" oninput="updOT('${emp.id}',this.value)"/>
+      </div>
+      <div class="priority-wrap">
+        <div class="priority-lbl">${t.prLbl}</div>
+        <input class="priority-inp" value="${emp.priority}" placeholder="${t.prPh}" oninput="updPr('${emp.id}',this.value)"/>
+      </div>`;
+    c.appendChild(div);
+  });
+}
+
+async function submitForm(){
+  const t=TR[lang];
+  const dept=gi('deptName').value.trim();const mgr=gi('mgrName').value.trim();
+  const date=gi('evalDate').value;const notes=gi('genNotes').value.trim();
+  if(!dept||!mgr){alert(t.alertDept);return}
+  if(employees.length===0){alert(t.alertEmp);return}
+  for(let i=0;i<employees.length;i++){
+    const e=employees[i];
+    const ok=e.name.trim()&&e.ot.trim()&&e.priority.trim()
+      &&Object.values(e.fs).every(f=>f.st&&f.kw.trim()&&f.cmt.trim())
+      &&Object.values(e.ex).every(f=>f.st&&f.kw.trim()&&f.cmt.trim());
+    if(!ok){alert(`${t.alertFields} ${e.name.trim()||('#'+(i+1))}`);return}
+  }
+  const payload={
+    timestamp:new Date().toISOString(),department:dept,manager:mgr,date,notes,lang,
+    employees:employees.map(emp=>({
+      name:emp.name,oneThing:emp.ot,priorityGap:emp.priority,
+      factors:FACTORS.ar.map((f,fi)=>({factor_ar:f.name,factor_en:FACTORS.en[fi].name,status:emp.fs[fi].st||'',keyword:emp.fs[fi].kw,comment:emp.fs[fi].cmt})),
+      extras:EXTRA_COLS.ar.map((ex,xi)=>({area_ar:ex,area_en:EXTRA_COLS.en[xi],status:emp.ex[xi].st||'',keyword:emp.ex[xi].kw,comment:emp.ex[xi].cmt}))
+    }))
+  };
+  submissions.push(payload);saveLocal();
+  if(SHEETS_URL&&SHEETS_URL!=="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"){
+    const ov=gi('ov');ov.style.display='flex';
+    try{await fetch(SHEETS_URL,{method:'POST',body:JSON.stringify(payload)})}
+    catch(e){console.warn('Sheets error',e)}
+    ov.style.display='none';
+  }
+  showScreen('suc-pg');
+}
+
+function saveLocal(){try{localStorage.setItem('mfcp_subs',JSON.stringify(submissions))}catch(e){}}
+function loadLocal(){try{const d=localStorage.getItem('mfcp_subs');if(d)submissions=JSON.parse(d)}catch(e){}}
+
+function subLevel(sub){
+  let r=false,y=false;
+  sub.employees.forEach(emp=>{
+    emp.factors.forEach(f=>{if(f.status==='r')r=true;if(f.status==='y')y=true;});
+    (emp.extras||[]).forEach(f=>{if(f.status==='r')r=true;if(f.status==='y')y=true;});
+  });
+  return r?'red':y?'yellow':'green';
+}
+function setF(f,btn){dashFilter=f;document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));btn.classList.add('on');renderDash()}
+
+async function renderDash(){
+  const t=TR[lang];
+  if(SHEETS_URL&&SHEETS_URL!=="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"){
+    gi('subList').innerHTML=`<div class="empty-dash"><div class="spinner" style="margin:0 auto 12px"></div><div>${t.dashLoading}</div></div>`;
+    try{const res=await fetch(SHEETS_URL+'?action=getAll');const remote=await res.json();if(Array.isArray(remote))submissions=remote;}catch(e){}
+  }
+  const tot=submissions.length;
+  const grn=submissions.filter(s=>subLevel(s)==='green').length;
+  const yel=submissions.filter(s=>subLevel(s)==='yellow').length;
+  const red=submissions.filter(s=>subLevel(s)==='red').length;
+  si('st-tot',tot);si('st-g',grn);si('st-y',yel);si('st-r',red);
+  const list=gi('subList');list.innerHTML='';
+  const filtered=submissions.filter(s=>dashFilter==='all'||subLevel(s)===dashFilter);
+  if(filtered.length===0){
+    list.innerHTML=`<div class="empty-dash"><div class="ei">${tot===0?'📭':'🔍'}</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">${tot===0?t.emptyDash:(lang==='ar'?'لا توجد نتائج لهذا الفلتر':'No results for this filter')}</div><div style="font-size:13px">${tot===0?t.emptyDashS:''}</div></div>`;
+    return;
+  }
+  filtered.forEach(sub=>{
+    const ri=submissions.indexOf(sub);const lvl=subLevel(sub);
+    const lvlPill=lvl==='red'?`<span class="pill pr">🔴</span>`:lvl==='yellow'?`<span class="pill py">🟡</span>`:`<span class="pill pg">✅</span>`;
+    const d=new Date(sub.timestamp);
+    const ds=d.toLocaleDateString(lang==='ar'?'ar-EG':'en-GB',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const empHTML=sub.employees.map(emp=>{
+      const dot=st=>st==='g'?`<span class="sdot" style="background:var(--green-mid)"></span>`:st==='y'?`<span class="sdot" style="background:var(--yellow-mid)"></span>`:st==='r'?`<span class="sdot" style="background:var(--red-mid)"></span>`:`<span class="sdot" style="background:var(--border)"></span>`;
+      const frows=emp.factors.map(f=>`<tr><td>${lang==='ar'?f.factor_ar:f.factor_en}</td><td>${dot(f.status)}</td><td style="font-style:italic;color:var(--text-muted)">${f.keyword||'—'}</td><td class="cmt-dash">${f.comment||''}</td></tr>`).join('');
+      const erows=(emp.extras||[]).map(ex=>`<tr style="background:#FDFCFB"><td>${lang==='ar'?ex.area_ar:ex.area_en}</td><td>${dot(ex.status)}</td><td style="font-style:italic;color:var(--text-muted)">${ex.keyword||'—'}</td><td class="cmt-dash">${ex.comment||''}</td></tr>`).join('');
+      const prTag=emp.priorityGap?`<span class="priority-tag">⭐ ${emp.priorityGap}</span>`:'';
+      const otHTML=emp.oneThing?`<div class="ot-row"><strong>${t.otLblD} </strong>${emp.oneThing}</div>`:'';
+      return `<div class="esec">
+        <div class="esec-hd"><div class="esec-av">${ini(emp.name)||'?'}</div><span>${emp.name||'—'}</span>${prTag}</div>
+        <div style="overflow-x:auto"><table class="mini-tbl"><thead><tr><th>${t.thFact}</th><th style="width:50px">${t.thStat}</th><th>${t.thKwD}</th><th>${t.thCmtD}</th></tr></thead>
+        <tbody>${frows}<tr><td colspan="4" style="padding:4px 11px;background:var(--blue-bg);font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em">${t.extraLbl}</td></tr>${erows}</tbody></table></div>
+        ${otHTML}
+      </div>`;
+    }).join('');
+    const notesHTML=sub.notes?`<div class="sub-notes-box"><strong>${t.notesLbl}</strong> ${sub.notes}</div>`:'';
+    const card=document.createElement('div');card.className='sub-card';
+    card.innerHTML=`
+      <div class="sub-hd" onclick="togSub(this)">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="sub-dept">${sub.department}</span>${lvlPill}
+            <span class="pill pb">${sub.employees.length} ${t.empCount}</span>
+          </div>
+          <div class="sub-meta">${sub.manager} · ${t.submitted} ${ds}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="del-sub" onclick="event.stopPropagation();delSub(${ri})">🗑</button>
+          <span class="sub-tog">›</span>
+        </div>
+      </div>
+      <div class="sub-body">${empHTML}${notesHTML}</div>`;
+    list.appendChild(card);
+  });
+}
+
+function togSub(hd){const body=hd.nextElementSibling;const tog=hd.querySelector('.sub-tog');const open=body.classList.toggle('open');tog.classList.toggle('open',open)}
+function delSub(i){submissions.splice(i,1);saveLocal();renderDash()}
+function clearAll(){if(!confirm(TR[lang].confirmClear))return;submissions=[];saveLocal();renderDash()}
+function exportCSV(){
+  if(!submissions.length)return;
+  const rows=[['Timestamp','Department','Manager','Date','Employee','Type','Factor/Area AR','Factor/Area EN','Status','Keyword','Comment','One Thing','Priority Gap','Notes']];
+  submissions.forEach(sub=>sub.employees.forEach(emp=>{
+    emp.factors.forEach(f=>rows.push([sub.timestamp,sub.department,sub.manager,sub.date,emp.name,'FreshLens',f.factor_ar,f.factor_en,f.status,f.keyword,f.comment,emp.oneThing,emp.priorityGap,sub.notes]));
+    (emp.extras||[]).forEach(ex=>rows.push([sub.timestamp,sub.department,sub.manager,sub.date,emp.name,'Extra',ex.area_ar,ex.area_en,ex.status,ex.keyword,ex.comment,emp.oneThing,emp.priorityGap,sub.notes]));
+  }));
+  const csv=rows.map(r=>r.map(v=>'"'+(String(v||'').replace(/"/g,'""'))+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='manager-feedback-checkpoints-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+function resetAll(){employees=[];empCnt=0;gi('deptName').value='';gi('mgrName').value='';gi('evalDate').value='';gi('genNotes').value='';renderEmps();showScreen('landing')}
+
+loadLocal();applyTR();addEmp();addEmp();
+</script>
+</body>
+</html>
