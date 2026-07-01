@@ -20,6 +20,20 @@ function managerList_() {
   return rows.map(r => JSON.parse(r[6])).filter(Boolean);
 }
 
+// DELETE ONE: id = 0-based getAll position → sheet row id + 2 (header + 1-based).
+function managerDelete_(d) {
+  managerSheet_().deleteRow(d.id + 2);
+  return { ok: true };
+}
+
+// DELETE ALL (one request): clear every data row below the header.
+function clearManager_() {
+  const sheet = managerSheet_();
+  const n = sheet.getLastRow() - 1;
+  if (n > 0) sheet.deleteRows(2, n);
+  return { ok: true };
+}
+
 // CREATE: one row — readable summary cols + the full JSON kept for round-trip.
 function managerCreate_(d) {
   managerSheet_().appendRow([

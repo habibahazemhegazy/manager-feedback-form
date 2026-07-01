@@ -391,7 +391,7 @@ body{font-family:-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;background:var
     <div class="meta-row">
       <div class="fld"><label id="l-dept">اسم القسم</label><input type="text" id="deptName" placeholder="مثال: المبيعات"/></div>
       <div class="fld"><label id="l-mgr">اسم المدير</label><input type="text" id="mgrName" placeholder="اسمك الكامل"/></div>
-      <div class="fld"><label id="l-date">تاريخ التقييم</label><input type="date" id="evalDate"/></div>
+      <div class="fld"><label id="l-date">تاريخ التقييم</label><input type="month" id="evalDate"/></div>
     </div>
 
     <div class="sec-card">
@@ -540,7 +540,7 @@ ar:{
   sucH:"تم إرسال التقييم بنجاح!",sucP:"تم حفظ تقييمك. سيراجعه قسم التطوير ويتواصل معك فقط عند الحاجة.",sucReset:"إرسال تقييم آخر",
   ovTxt:"جاري الإرسال...",
   alertDept:"من فضلك أدخل اسم القسم واسم المدير.",alertEmp:"من فضلك أضف موظفًا واحدًا على الأقل.",
-  alertFields:"من فضلك أكمل كل الحقول للموظف",
+  alertFields:"من فضلك أكمل كل الحقول للموظف",mfColor:"اختر اللون",mfKw:"اكتب الكلمة المفتاحية",mfName:"اسم الموظف",
   dhTitle:"📊 لوحة مسؤولة التطوير",dhSub:"حبيبة حجازي — Manager Feedback Check Points",
   dRefresh:"تحديث",dExport:"تصدير CSV",dClear:"حذف الكل",dBack:"رجوع",
   stTot:"إجمالي الاستجابات",stG:"✅ كل الإجابات أخضر",stY:"🟡 يحتاج متابعة",stR:"🔴 تدخل عاجل",
@@ -595,7 +595,7 @@ en:{
   sucH:"Assessment submitted successfully!",sucP:"Your assessment has been saved. L&D will review it and reach out only if needed.",sucReset:"Submit another assessment",
   ovTxt:"Sending...",
   alertDept:"Please enter the department name and your name.",alertEmp:"Please add at least one employee.",
-  alertFields:"Please complete all fields for employee",
+  alertFields:"Please complete all fields for employee",mfColor:"choose a color",mfKw:"enter a keyword",mfName:"employee name",
   dhTitle:"📊 L&D Manager Dashboard",dhSub:"Habiba Hegazy — Manager Feedback Check Points",
   dRefresh:"Refresh",dExport:"Export CSV",dClear:"Delete All",dBack:"Back",
   stTot:"Total Responses",stG:"✅ All Answers Green",stY:"🟡 Needs Follow-up",stR:"🔴 Urgent Action",
@@ -749,10 +749,8 @@ async function submitForm(){
   if(employees.length===0){alert(t.alertEmp);return}
   for(let i=0;i<employees.length;i++){
     const e=employees[i];
-    const ok=e.name.trim()&&e.ot.trim()&&e.priority.trim()
-      &&Object.values(e.fs).every(f=>f.st&&f.kw.trim()&&f.cmt.trim())
-      &&Object.values(e.ex).every(f=>f.st&&f.kw.trim()&&f.cmt.trim());
-    if(!ok){alert(`${t.alertFields} ${e.name.trim()||('#'+(i+1))}`);return}
+    const miss=firstMissing(e,t);
+    if(miss){alert(`${t.alertFields} ${e.name.trim()||('#'+(i+1))}:\n• ${miss}`);return}
   }
   const payload={
     action:'managerSubmit',
@@ -776,6 +774,18 @@ async function submitForm(){
 function saveLocal(){try{localStorage.setItem('mfcp_subs',JSON.stringify(submissions))}catch(e){}}
 function loadLocal(){try{const d=localStorage.getItem('mfcp_subs');if(d)submissions=JSON.parse(d)}catch(e){}}
 
+// ponytail: normalize partial/manual sheet rows so subLevel/render never hit undefined arrays
+function normSub(s){s=s||{};s.employees=(s.employees||[]).map(e=>{e=e||{};e.factors=e.factors||[];e.extras=e.extras||[];return e;});return s;}
+// returns the first missing required field as a localized label, or null if complete
+function firstMissing(e,t){
+  if(!e.name.trim())return t.mfName;
+  const facs=FACTORS[lang],exs=EXTRA_COLS[lang];
+  // only the color (status) is required per row; keyword & comment are optional
+  for(let i=0;i<facs.length;i++){if(!e.fs[i].st)return`${facs[i].name} — ${t.mfColor}`;}
+  for(let i=0;i<exs.length;i++){if(!e.ex[i].st)return`${exs[i]} — ${t.mfColor}`;}
+  // One Thing & Priority Gap are open reflection fields — optional, never block submit
+  return null;
+}
 function subLevel(sub){
   let r=false,y=false;
   sub.employees.forEach(emp=>{
@@ -790,7 +800,7 @@ async function renderDash(){
   const t=TR[lang];
   if(SHEETS_URL&&SHEETS_URL!=="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"){
     gi('subList').innerHTML=`<div class="empty-dash"><div class="spinner" style="margin:0 auto 12px"></div><div>${t.dashLoading}</div></div>`;
-    try{const res=await fetch(SHEETS_URL+'?action=getAll');const remote=await res.json();if(Array.isArray(remote))submissions=remote;}catch(e){}
+    try{const res=await fetch(SHEETS_URL+'?action=getAll');const remote=await res.json();if(Array.isArray(remote))submissions=remote.map(normSub);}catch(e){}
   }
   const tot=submissions.length;
   const grn=submissions.filter(s=>subLevel(s)==='green').length;
@@ -843,8 +853,11 @@ async function renderDash(){
 }
 
 function togSub(hd){const body=hd.nextElementSibling;const tog=hd.querySelector('.sub-tog');const open=body.classList.toggle('open');tog.classList.toggle('open',open)}
-function delSub(i){submissions.splice(i,1);saveLocal();renderDash()}
-function clearAll(){if(!confirm(TR[lang].confirmClear))return;submissions=[];saveLocal();renderDash()}
+async function delSub(i){submissions.splice(i,1);saveLocal();renderDash();
+  await fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'managerDelete',id:i})});
+  renderDash();}
+async function clearAll(){if(!confirm(TR[lang].confirmClear))return;submissions=[];saveLocal();renderDash();
+  await fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'clearManager'})});}
 function exportCSV(){
   if(!submissions.length)return;
   const rows=[['Timestamp','Department','Manager','Date','Employee','Type','Factor/Area AR','Factor/Area EN','Status','Keyword','Comment','One Thing','Priority Gap','Notes']];
@@ -859,7 +872,7 @@ function exportCSV(){
 }
 function resetAll(){employees=[];empCnt=0;gi('deptName').value='';gi('mgrName').value='';gi('evalDate').value='';gi('genNotes').value='';renderEmps();showScreen('landing')}
 
-loadLocal();applyTR();addEmp();addEmp();
+loadLocal();applyTR();addEmp();
 </script>
 </body>
 </html>
