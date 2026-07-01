@@ -474,7 +474,7 @@ body{font-family:-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;background:var
 
 <script>
 const PW="__MANAGER_PASSWORD__";
-const SHEETS_URL="https://script.google.com/macros/s/AKfycbxXYsm7eOCziXGdvC0W013lR-ThwhdvlyeVoQ70raSBFOWIHYQSz-ErQIDpzbnmGB85sw/exec";
+const SHEETS_URL="https://script.google.com/macros/s/AKfycbzgWe7liF-2vjA4LqCWCEIv4DEAcCrg4aNPi0QNmDgK_D9YppZFl7dZKjlMuq0EOMUKLg/exec";
 
 // ── NEW COLUMNS FROM EXCEL ──
 const EXTRA_COLS={
@@ -755,6 +755,7 @@ async function submitForm(){
     if(!ok){alert(`${t.alertFields} ${e.name.trim()||('#'+(i+1))}`);return}
   }
   const payload={
+    action:'managerSubmit',
     timestamp:new Date().toISOString(),department:dept,manager:mgr,date,notes,lang,
     employees:employees.map(emp=>({
       name:emp.name,oneThing:emp.ot,priorityGap:emp.priority,
