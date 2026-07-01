@@ -467,6 +467,7 @@ body{font-family:-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;background:var
       <button class="fchip" onclick="setF('green',this)" id="f-g">✅ أخضر</button>
       <button class="fchip" onclick="setF('yellow',this)" id="f-y">🟡 أصفر</button>
       <button class="fchip" onclick="setF('red',this)" id="f-r">🔴 أحمر</button>
+      <select class="fchip" id="mgr-filter" onchange="setMgr(this.value)"></select>
     </div>
     <div id="subList"></div>
   </div>
@@ -609,7 +610,7 @@ en:{
   extraLbl:"Additional Areas"
 }};
 
-let lang='ar',employees=[],empCnt=0,submissions=[],dashFilter='all';
+let lang='ar',employees=[],empCnt=0,submissions=[],dashFilter='all',mgrFilter='all';
 function gi(id){return document.getElementById(id)}
 function si(id,v){const e=gi(id);if(e)e.innerHTML=v}
 function sp(id,v){const e=gi(id);if(e)e.placeholder=v}
@@ -794,7 +795,17 @@ function subLevel(sub){
   });
   return r?'red':y?'yellow':'green';
 }
-function setF(f,btn){dashFilter=f;document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));btn.classList.add('on');renderDash()}
+function setF(f,btn){dashFilter=f;document.querySelectorAll('.fchip.on').forEach(c=>c.classList.remove('on'));btn.classList.add('on');renderDash()}
+function setMgr(v){mgrFilter=v;renderDash()}
+// rebuild the manager dropdown from distinct managers, keeping the current pick
+function fillMgrFilter(){
+  const sel=gi('mgr-filter');if(!sel)return;
+  const mgrs=[...new Set(submissions.map(s=>s.manager).filter(Boolean))].sort();
+  if(!mgrs.includes(mgrFilter))mgrFilter='all';
+  const allLbl=lang==='ar'?'كل المدراء':'All managers';
+  sel.innerHTML=`<option value="all">${allLbl}</option>`+mgrs.map(m=>`<option value="${m}">${m}</option>`).join('');
+  sel.value=mgrFilter;
+}
 
 async function renderDash(){
   const t=TR[lang];
@@ -802,13 +813,15 @@ async function renderDash(){
     gi('subList').innerHTML=`<div class="empty-dash"><div class="spinner" style="margin:0 auto 12px"></div><div>${t.dashLoading}</div></div>`;
     try{const res=await fetch(SHEETS_URL+'?action=getAll');const remote=await res.json();if(Array.isArray(remote))submissions=remote.map(normSub);}catch(e){}
   }
-  const tot=submissions.length;
-  const grn=submissions.filter(s=>subLevel(s)==='green').length;
-  const yel=submissions.filter(s=>subLevel(s)==='yellow').length;
-  const red=submissions.filter(s=>subLevel(s)==='red').length;
+  fillMgrFilter();
+  const base=submissions.filter(s=>mgrFilter==='all'||s.manager===mgrFilter);
+  const tot=base.length;
+  const grn=base.filter(s=>subLevel(s)==='green').length;
+  const yel=base.filter(s=>subLevel(s)==='yellow').length;
+  const red=base.filter(s=>subLevel(s)==='red').length;
   si('st-tot',tot);si('st-g',grn);si('st-y',yel);si('st-r',red);
   const list=gi('subList');list.innerHTML='';
-  const filtered=submissions.filter(s=>dashFilter==='all'||subLevel(s)===dashFilter);
+  const filtered=base.filter(s=>dashFilter==='all'||subLevel(s)===dashFilter);
   if(filtered.length===0){
     list.innerHTML=`<div class="empty-dash"><div class="ei">${tot===0?'📭':'🔍'}</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">${tot===0?t.emptyDash:(lang==='ar'?'لا توجد نتائج لهذا الفلتر':'No results for this filter')}</div><div style="font-size:13px">${tot===0?t.emptyDashS:''}</div></div>`;
     return;
